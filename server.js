@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
-    cloud_name: "dqrh0bt2e",
-    api_key: "735497841148353",
-    api_secret: "6TDAiQTaBPn5fCudrw60a6nFLWc"
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
 });
 
 const express = require("express");
@@ -14,10 +14,10 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // conexion base de datos
-mongoose.connect("mongodb+srv://admin:cesar2561234@cam-cluster.nzodh2p.mongodb.net/?appName=Cam-cluster")
+mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("✅ MongoDB conectado"))
 .catch(err => console.log("❌ Error MongoDB:", err));
 
