@@ -38,6 +38,17 @@ app.use(cors());
 // Permite ver imagenes en navegador
 app.use("/images", express.static("uploads"));
 
+// Cloudinary
+app.get("/images", async (req, res) => {
+    try {
+        const images = await Image.find().sort({ createdAt: -1 });
+        res.json(images);
+    } catch (error) {
+        console.log("❌ Error obteniendo imágenes:", error);
+        res.status(500).send("Error");
+    }
+});
+
 // Configuración para recibir archivos
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
