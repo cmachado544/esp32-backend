@@ -38,6 +38,8 @@ app.use(cors());
 // Permite ver imagenes en navegador
 app.use("/images", express.static("uploads"));
 
+app.use(express.json());
+
 // Cloudinary
 app.get("/images", async (req, res) => {
     try {
@@ -46,6 +48,39 @@ app.get("/images", async (req, res) => {
     } catch (error) {
         console.log("❌ Error obteniendo imágenes:", error);
         res.status(500).send("Error");
+    }
+});
+
+// Eliminar imagenes
+app.delete("/images", async (req, res) => {
+    try {
+        const { ids } = req.body;
+
+        if (!ids || ids.length === 0) {
+            return res.status(400).send("No IDs provided");
+        }
+
+        for (let id of ids) {
+            const image = await Image.findById(id);
+            if (!image) continue;
+
+            // EXTRAER public_id desde URL
+            const urlParts = image.url.split("/");
+            const fileName = urlParts[urlParts.length - 1];
+            const publicId = fileName.split(".")[0];
+
+            // BORRAR EN CLOUDINARY
+            await cloudinary.uploader.destroy(publicId);
+
+            // BORRAR EN MONGODB
+            await Image.findByIdAndDelete(id);
+        }
+
+        res.json({ message: "Imágenes eliminadas" });
+
+    } catch (error) {
+        console.log("❌ Error eliminando:", error);
+        res.status(500).send("Error eliminando");
     }
 });
 
