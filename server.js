@@ -24,6 +24,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Guardado
 const ImageSchema = new mongoose.Schema({
     url: String,
+    public_id: String,
     createdAt: {
         type: Date,
         default: Date.now
@@ -64,13 +65,8 @@ app.delete("/images", async (req, res) => {
             const image = await Image.findById(id);
             if (!image) continue;
 
-            // EXTRAER public_id desde URL
-            const urlParts = image.url.split("/");
-            const fileName = urlParts[urlParts.length - 1];
-            const publicId = fileName.split(".")[0];
-
             // BORRAR EN CLOUDINARY
-            await cloudinary.uploader.destroy(publicId);
+            await cloudinary.uploader.destroy(image.public_id);
 
             // BORRAR EN MONGODB
             await Image.findByIdAndDelete(id);
@@ -126,7 +122,8 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 
         // Guardar en MongoDB
         const newImage = new Image({
-            url: result.secure_url
+            url: result.secure_url,
+	    public_id: result.public_id
         });
 
         await newImage.save();
