@@ -127,7 +127,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
         // Guardar en MongoDB
         const newImage = new Image({
             url: result.secure_url,
-	    public_id: result.public_id.
+	    public_id: result.public_id,
 	    filename: req.file.originalname
         });
 
