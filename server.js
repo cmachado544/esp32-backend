@@ -25,6 +25,7 @@ mongoose.connect(process.env.MONGO_URI)
 const ImageSchema = new mongoose.Schema({
     url: String,
     public_id: String,
+    filename: String, // NUEVO
     createdAt: {
         type: Date,
         default: Date.now
@@ -100,19 +101,22 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 
     try {
         // Convertir upload_stream en promesa
-        const uploadToCloudinary = () => {
-            return new Promise((resolve, reject) => {
-                const stream = cloudinary.uploader.upload_stream(
-                    { resource_type: "image" },
-                    (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result);
-                    }
-                );
+	const uploadToCloudinary = () => {
+    	    return new Promise((resolve, reject) => {
+        	const stream = cloudinary.uploader.upload_stream(
+            	    {
+                	resource_type: "image",
+                	public_id: req.file.originalname.split(".")[0] // nombre desde ESP32
+            	    },
+            	    (error, result) => {
+                	if (error) reject(error);
+                	else resolve(result);
+            	    }
+        	);
 
-                stream.end(req.file.buffer);
-            });
-        };
+        	stream.end(req.file.buffer);
+    	     });
+	 };
 
         // Subir imagen
         const result = await uploadToCloudinary();
@@ -123,7 +127,8 @@ app.post("/upload", upload.single("image"), async (req, res) => {
         // Guardar en MongoDB
         const newImage = new Image({
             url: result.secure_url,
-	    public_id: result.public_id
+	    public_id: result.public_id.
+	    filename: req.file.originalname
         });
 
         await newImage.save();
